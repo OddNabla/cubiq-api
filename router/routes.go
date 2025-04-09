@@ -3,6 +3,7 @@ package router
 import (
 	"net/http"
 
+	"github.com/DouglasValerio/cubiq-api/handler"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,5 +15,7 @@ func initializeRoutes(router *gin.Engine) {
 				"status": "ok",
 			})
 		})
+
+		v1.POST("/inbound-message", handler.HandleInboundMessage)
 	}
 }
