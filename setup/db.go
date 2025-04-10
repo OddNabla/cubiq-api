@@ -11,6 +11,7 @@ import (
 )
 
 var MongoClient *mongo.Client
+var MongoDatabase *mongo.Database
 
 func Init() {
 
@@ -28,5 +29,6 @@ func Init() {
 	}
 	// defer MongoClient.Disconnect(context.Background())
 	log.Println("Connected to MongoDB")
+	MongoDatabase = MongoClient.Database(os.Getenv("MONGODB_DATABASE"))
 
 }

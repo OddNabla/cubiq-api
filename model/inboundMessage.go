@@ -44,11 +44,21 @@ type ContactProfile struct {
 	Name string `json:"name" binding:"required" bson:"name"`
 }
 type Message struct {
-	From      string      `json:"from" binding:"required" bson:"from"`
-	Id        string      `json:"id" binding:"required" bson:"id"`
-	Timestamp string      `json:"timestamp" binding:"required" bson:"timestamp"`
-	Type      string      `json:"type" binding:"required" bson:"type"`
-	Text      MessageText `json:"text" binding:"required" bson:"text"`
+	From      string           `json:"from" binding:"required" bson:"from"`
+	Id        string           `json:"id" binding:"required" bson:"id"`
+	Timestamp string           `json:"timestamp" binding:"required" bson:"timestamp"`
+	Type      string           `json:"type" binding:"required" bson:"type"`
+	Text      MessageText      `json:"text" bson:"text"`
+	Context   Context          `json:"context" bson:"context"`
+	Audio     Media            `json:"audio" bson:"audio"`
+	Image     Media            `json:"image" bson:"image"`
+	Video     Media            `json:"video" bson:"video"`
+	Document  Media            `json:"document" bson:"document"`
+	Sticker   Media            `json:"sticker" bson:"sticker"`
+	Location  Location         `json:"location" bson:"location"`
+	Contacts  []SharedContacts `json:"contacts" bson:"contacts"`
+	Reaction  Reaction         `json:"reaction" bson:"reaction"`
+	Button    Button           `json:"button" bson:"button"`
 }
 type MessageText struct {
 	Body       string `json:"body" binding:"required" bson:"body"`
@@ -79,6 +89,56 @@ type Pricing struct {
 	PricingModel string `json:"pricing_model" binding:"required" bson:"pricing_model"`
 }
 
+type Context struct {
+	From                string `json:"from" bson:"from"`
+	Id                  string `json:"id" bson:"id"`
+	Forwarded           bool   `json:"forwarded" bson:"forwarded"`
+	FrequentlyForwarded bool   `json:"frequently_forwarded" bson:"frequently_forwarded"`
+	ReferredProduct     string `json:"referred_product" bson:"referred_product"`
+}
+
+type Media struct {
+	Caption  string `json:"caption" bson:"caption"`
+	Filename string `json:"filename" bson:"filename"`
+	Id       string `json:"id" binding:"required" bson:"id"`
+	MimeType string `json:"mime_type" binding:"required" bson:"mime_type"`
+	Sha256   string `json:"sha256" binding:"required" bson:"sha256"`
+}
+
+type SharedContacts struct {
+	Name   SharedContactName    `json:"name" binding:"required" bson:"name"`
+	Phones []SharedContactPhone `json:"phones" binding:"required" bson:"phones"`
+}
+
+type SharedContactName struct {
+	FirstName     string `json:"first_name" binding:"required" bson:"first_name"`
+	FormattedName string `json:"formatted_name" binding:"required" bson:"formatted_name"`
+	LastName      string `json:"last_name" binding:"required" bson:"last_name"`
+	MiddleName    string `json:"middle_name" binding:"required" bson:"middle_name"`
+}
+
+type SharedContactPhone struct {
+	Phone string `json:"phone" binding:"required" bson:"phone"`
+	Type  string `json:"type" binding:"required" bson:"type"`
+	WaId  string `json:"wa_id" binding:"required" bson:"wa_id"`
+}
+
+type Reaction struct {
+	MessageId string `json:"message_id" binding:"required" bson:"message_id"`
+	Emoji     string `json:"emoji" binding:"required" bson:"emoji"`
+}
+type Location struct {
+	Address   string  `json:"address" bson:"address"`
+	Latitude  float32 `json:"latitude" bson:"latitude"`
+	Longitude float32 `json:"longitude" bson:"longitude"`
+	Name      string  `json:"name" bson:"name"`
+}
+
+type Button struct {
+	Text    string `json:"text" bson:"text"`
+	Payload string `json:"payload" bson:"payload"`
+}
+
 func (m *InboundMessage) SetDefaults() {
 	now := time.Now().UTC()
 	if m.ID == "" {
@@ -88,4 +148,24 @@ func (m *InboundMessage) SetDefaults() {
 		m.CreatedAt = now
 	}
 	m.UpdatedAt = now
+}
+
+func (m *InboundMessage) FlattenValues() ([]Message, []Statuses) {
+	var allMessages []Message
+	var allStatuses []Statuses
+	for _, entry := range m.Entry {
+		for _, change := range entry.Changes {
+			if change.Value.Messages != nil {
+				allMessages = append(allMessages, change.Value.Messages...)
+			}
+		}
+	}
+	for _, entry := range m.Entry {
+		for _, change := range entry.Changes {
+			if change.Value.Statuses != nil {
+				allStatuses = append(allStatuses, change.Value.Statuses...)
+			}
+		}
+	}
+	return allMessages, allStatuses
 }

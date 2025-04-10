@@ -18,4 +18,8 @@ func initializeRoutes(router *gin.Engine) {
 
 		v1.POST("/inbound-message", handler.HandleInboundMessage)
 	}
+	v2 := router.Group("/api/chat")
+	{
+		v2.POST("/wa", handler.HandleInboundFromWebhookMessage)
+	}
 }

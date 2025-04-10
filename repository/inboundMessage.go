@@ -9,12 +9,13 @@ import (
 )
 
 type InboundMessageRepo struct {
-	MongoCollection *mongo.Collection
+	MongoDatabase *mongo.Database
 }
 
 func (r *InboundMessageRepo) InsertInboundMessage(inboundMessage *model.InboundMessage) (*model.InboundMessage, error) {
+	collection := r.MongoDatabase.Collection("inbound_messages")
 	inboundMessage.SetDefaults()
-	_, err := r.MongoCollection.InsertOne(context.Background(), inboundMessage)
+	_, err := collection.InsertOne(context.Background(), inboundMessage)
 	if err != nil {
 		return nil, err
 	}
@@ -22,9 +23,10 @@ func (r *InboundMessageRepo) InsertInboundMessage(inboundMessage *model.InboundM
 }
 
 func (r *InboundMessageRepo) FindInboundMessageById(id string) (*model.InboundMessage, error) {
+	collection := r.MongoDatabase.Collection("inbound_messages")
 	filter := bson.M{"id": id}
 	var inboundMessage model.InboundMessage
-	err := r.MongoCollection.FindOne(context.Background(), filter).Decode(&inboundMessage)
+	err := collection.FindOne(context.Background(), filter).Decode(&inboundMessage)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +34,8 @@ func (r *InboundMessageRepo) FindInboundMessageById(id string) (*model.InboundMe
 }
 
 func (r *InboundMessageRepo) FindAllInboundMessages() ([]model.InboundMessage, error) {
-	result, err := r.MongoCollection.Find(context.Background(), bson.M{})
+	collection := r.MongoDatabase.Collection("inbound_messages")
+	result, err := collection.Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, err
 	}
