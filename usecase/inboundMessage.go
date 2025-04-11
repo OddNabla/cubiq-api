@@ -1,8 +1,12 @@
 package usecase
 
 import (
+	"context"
+	"os"
+
 	"github.com/DouglasValerio/cubiq-api/model"
 	"github.com/DouglasValerio/cubiq-api/repository"
+	"github.com/DouglasValerio/cubiq-api/service"
 )
 
 type InboundMessageUseCase struct {
@@ -50,7 +54,14 @@ func (uc *InboundMessageUseCase) generateChatMessage(messages []model.Message) (
 }
 
 func handleMediaMessage(message model.Message, chatMessage *model.ChatMessage) {
+	waService := service.WhatsAppService{}
+	firebaseService := service.FirebaseUploader{}
+	var mediaId string
+	var contentType string
+
 	if message.Type == "audio" {
+		mediaId = message.Audio.Id
+		contentType = message.Audio.MimeType
 		chatMessage.Media = model.MediaMessage{
 			Caption:  message.Audio.Caption,
 			Filename: message.Audio.Filename,
@@ -59,6 +70,8 @@ func handleMediaMessage(message model.Message, chatMessage *model.ChatMessage) {
 		}
 	}
 	if message.Type == "video" {
+		mediaId = message.Video.Id
+		contentType = message.Video.MimeType
 		chatMessage.Media = model.MediaMessage{
 			Caption:  message.Video.Caption,
 			Filename: message.Video.Filename,
@@ -67,6 +80,8 @@ func handleMediaMessage(message model.Message, chatMessage *model.ChatMessage) {
 		}
 	}
 	if message.Type == "image" {
+		mediaId = message.Image.Id
+		contentType = message.Image.MimeType
 		chatMessage.Media = model.MediaMessage{
 			Caption:  message.Image.Caption,
 			Filename: message.Image.Filename,
@@ -75,6 +90,8 @@ func handleMediaMessage(message model.Message, chatMessage *model.ChatMessage) {
 		}
 	}
 	if message.Type == "document" {
+		mediaId = message.Document.Id
+		contentType = message.Document.MimeType
 		chatMessage.Media = model.MediaMessage{
 			Caption:  message.Document.Caption,
 			Filename: message.Document.Filename,
@@ -83,6 +100,8 @@ func handleMediaMessage(message model.Message, chatMessage *model.ChatMessage) {
 		}
 	}
 	if message.Type == "sticker" {
+		mediaId = message.Sticker.Id
+		contentType = message.Sticker.MimeType
 		chatMessage.Media = model.MediaMessage{
 			Caption:  message.Sticker.Caption,
 			Filename: message.Sticker.Filename,
@@ -90,6 +109,13 @@ func handleMediaMessage(message model.Message, chatMessage *model.ChatMessage) {
 			MimeType: message.Sticker.MimeType,
 		}
 	}
+	bytes, _ := waService.DownloadMedia(mediaId, "378510502012262", os.Getenv("WA_TOKEN"))
+
+	url, err := firebaseService.UploadFile(context.Background(), bytes, mediaId, contentType)
+	if err == nil {
+		chatMessage.SetMediaFileUrl(url)
+	}
+
 }
 func (uc *InboundMessageUseCase) generateChatStatus(statuses []model.Statuses) ([]*model.MessageStatus, error) {
 	chatStatuses := make([]*model.MessageStatus, 0)

@@ -12,3 +12,4 @@
 # Go binaries
 bin/*
 .env
+*-account.json
