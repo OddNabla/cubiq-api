@@ -12,6 +12,10 @@ jobs:
     - name: Checkout source
       uses: actions/checkout@v3
 
+    - name: Write environment variables to .env file
+      run: |
+        echo "PIPE_WA_REQUESTS=true" > .env
+
     - name: Log in to GitHub Container Registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
