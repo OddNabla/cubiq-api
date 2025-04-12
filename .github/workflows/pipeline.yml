@@ -8,8 +8,8 @@ jobs:
   build_and_push:
     runs-on: ubuntu-latest
     env:
-      MONGO_URI: ${{ secrets.MONGO_URI }}
-      MONGO_DB: ${{ secrets.MONGO_DB }}
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
       WA_TOKEN: ${{ secrets.WA_TOKEN }}
       FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
       FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORE_BUCKET }}
@@ -21,8 +21,8 @@ jobs:
 
     - name: Write environment variables to .env file
       run: |
-        echo "MONGO_URI=${MONGO_URI}" >> .env
-        echo "MONGO_DB=${MONGO_DB}" >> .env
+        echo "MONGODB_URI=${MONGODB_URI}" >> .env
+        echo "MONGODB_DATABASE=${MONGODB_DATABASE}" >> .env
         echo "WA_TOKEN=${WA_TOKEN}" >> .env
         echo "FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}" >> .env
         echo "FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}" >> .env
