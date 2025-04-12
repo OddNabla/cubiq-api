@@ -21,7 +21,7 @@ func HandleInboundMessage(c *gin.Context) {
 	inboundMessageRepository := repository.InboundMessageRepo{
 		MongoDatabase: setup.MongoDatabase,
 	}
-	chatRepository := repository.ChatMessageRepo{
+	chatRepository := &repository.ChatMessageRepo{
 		MongoDatabase: setup.MongoDatabase,
 	}
 	inboundMessageUseCase := usecase.InboundMessageUseCase{
@@ -45,7 +45,7 @@ func HandleInboundFromWebhookMessage(c *gin.Context) {
 	inboundMessageRepository := repository.InboundMessageRepo{
 		MongoDatabase: setup.MongoDatabase,
 	}
-	chatRepository := repository.ChatMessageRepo{
+	chatRepository := &repository.ChatMessageRepo{
 		MongoDatabase: setup.MongoDatabase,
 	}
 	inboundMessageUseCase := usecase.InboundMessageUseCase{

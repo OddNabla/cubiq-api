@@ -8,6 +8,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
+type ChatMessageRepository interface {
+	InsertChatMessage(chatMessage *model.ChatMessage) (*model.ChatMessage, error)
+	UpdateChatMessageStatus(id string, statuses []model.MessageStatus) error
+}
+
 type ChatMessageRepo struct {
 	MongoDatabase *mongo.Database
 }

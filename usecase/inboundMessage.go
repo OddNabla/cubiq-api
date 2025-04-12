@@ -10,7 +10,7 @@ import (
 )
 
 type InboundMessageUseCase struct {
-	ChatMessageRepo repository.ChatMessageRepo
+	ChatMessageRepo repository.ChatMessageRepository
 }
 
 func (uc *InboundMessageUseCase) Execute(inboundMessage *model.InboundMessage) ([]*model.ChatMessage, error) {
@@ -109,11 +109,13 @@ func handleMediaMessage(message model.Message, chatMessage *model.ChatMessage) {
 			MimeType: message.Sticker.MimeType,
 		}
 	}
-	bytes, _ := waService.DownloadMedia(mediaId, "378510502012262", os.Getenv("WA_TOKEN"))
+	if mediaId != "" && contentType != "" {
+		bytes, _ := waService.DownloadMedia(mediaId, "378510502012262", os.Getenv("WA_TOKEN"))
 
-	url, err := firebaseService.UploadFile(context.Background(), bytes, mediaId, contentType)
-	if err == nil {
-		chatMessage.SetMediaFileUrl(url)
+		url, err := firebaseService.UploadFile(context.Background(), bytes, mediaId, contentType)
+		if err == nil {
+			chatMessage.SetMediaFileUrl(url)
+		}
 	}
 
 }
