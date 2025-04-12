@@ -7,14 +7,29 @@ on:
 jobs:
   build-push-deploy:
     runs-on: ubuntu-latest
-
+    env:
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      MONGO_DB: ${{ secrets.MONGO_DB }}
+      WA_TOKEN: ${{ secrets.WA_TOKEN }}
+      FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+      FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORE_BUCKET }}
+      PRIVATE_SIGNING_KEY: ${{ secrets.PRIVATE_SIGNING_KEY }}
+      SERVICE_ACCOUNT_JSON: ${{ secrets.SERVICE_ACCOUNT_JSON }}
     steps:
     - name: Checkout source
       uses: actions/checkout@v3
 
     - name: Write environment variables to .env file
       run: |
-        echo "PIPE_WA_REQUESTS=true" > .env
+        echo "MONGO_URI=${MONGO_URI}" > .env
+        echo "MONGO_DB=${MONGO_DB}" >> .env
+        echo "WA_TOKEN=${WA_TOKEN}" >> .env
+        echo "FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}" >> .env
+        echo "FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}" >> .env
+        echo "PRIVATE_SIGNING_KEY=${PRIVATE_SIGNING_KEY}" >> .env
+    - name: write service account json to file
+      run: |
+        echo "${SERVICE_ACCOUNT_JSON}" | jq '.' > service_account.json
 
     - name: Log in to GitHub Container Registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin

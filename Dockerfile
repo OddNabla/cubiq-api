@@ -27,6 +27,7 @@
     # Copy binary from build stage
     COPY --from=builder /app/cubiqapi .
     COPY --from=builder /app/.env .env
+    COPY --from=builder /app/service-account.json service-account.json
     
     # Expose application port (optional)
     # Application runs on port 8080

@@ -11,30 +11,37 @@ import (
 	"fmt"
 	"os"
 
-	// "encoding/json"
 	"io"
-	// "os"
 	"time"
+
+	firebase "firebase.google.com/go"
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
 )
 
-// FirebaseUploader handles uploading files to Firebase Storage
 type FirebaseUploader struct {
 }
 
 func (fu *FirebaseUploader) UploadFile(ctx context.Context, data []byte, objectName, contentType string) (string, error) {
-	bucketName := "cubiqapi.firebasestorage.app"
-	firebaseServiceAccountPath := os.Getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
+	bucketName := os.Getenv("FIREBASE_STORAGE_BUCKET")
+	firebaseServiceAccountPath := "./service-account.json"
 
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile(firebaseServiceAccountPath))
+	opt := option.WithCredentialsFile(firebaseServiceAccountPath)
+	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error initializing app: %v", err)
 	}
-	defer client.Close()
 
-	bucket := client.Bucket(bucketName)
+	storageInstance, err := app.Storage(ctx)
+	if err != nil {
+		return "", fmt.Errorf("error getting storage instance: %v", err)
+	}
+
+	bucket, err := storageInstance.Bucket(bucketName)
+	if err != nil {
+		return "", fmt.Errorf("error getting bucket: %v", err)
+	}
 	object := bucket.Object(objectName)
 	writer := object.NewWriter(ctx)
 	writer.ContentType = contentType
@@ -56,14 +63,17 @@ func (fu *FirebaseUploader) UploadFile(ctx context.Context, data []byte, objectN
 }
 
 func getUrl(bucketName, objectName string) (string, error) {
-	firebaseServiceAccountPath := os.Getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
-	client, err := storage.NewClient(context.Background(), option.WithCredentialsFile(firebaseServiceAccountPath))
+	firebaseServiceAccountPath := "./service-account.json"
+
+	opt := option.WithCredentialsFile(firebaseServiceAccountPath)
+
+	client, err := storage.NewClient(context.Background(), opt)
 	if err != nil {
 		return "", err
 	}
 	defer client.Close()
 
-	privateKeyBytes := []byte(os.Getenv("FIREBASE_PRIVATE_KEY"))
+	privateKeyBytes := []byte(os.Getenv("PRIVATE_SIGNING_KEY"))
 
 	url, err := storage.SignedURL(bucketName, objectName, &storage.SignedURLOptions{
 		Method:         "GET",
