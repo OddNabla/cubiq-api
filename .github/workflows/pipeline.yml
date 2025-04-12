@@ -1,0 +1,41 @@
+name: Build and Deploy from GHCR to EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+
+    - name: Log in to GitHub Container Registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Build Docker image
+      run: |
+        REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+        GIT_COMMIT=${{ github.sha }}
+        docker build -t ghcr.io/$REPO_OWNER/bloc-api:$GIT_COMMIT .
+
+    - name: Push Docker image
+      run: |
+        REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+        GIT_COMMIT=${{ github.sha }}
+        docker push ghcr.io/$REPO_OWNER/bloc-api:$GIT_COMMIT
+
+    # - name: SSH to EC2 and deploy container
+    #   uses: appleboy/ssh-action@v1.0.3
+    #   with:
+    #     host: ${{ secrets.EC2_HOST }}
+    #     username: ${{ secrets.EC2_USER }}
+    #     key: ${{ secrets.EC2_KEY }}
+    #     script: |
+    #       echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ secrets.GHCR_USERNAME }} --password-stdin
+    #       docker pull ${{ env.image }}
+    #       docker stop my-go-app || true
+    #       docker rm my-go-app || true
+    #       docker run -d --name my-go-app -p 80:8080 ${{ env.image }}
