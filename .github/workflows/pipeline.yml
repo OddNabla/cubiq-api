@@ -27,7 +27,7 @@ jobs:
         echo "WA_TOKEN=${WA_TOKEN}" >> .env
         echo "FIREBASE_CLIENT_EMAIL=${FIREBASE_CLIENT_EMAIL}" >> .env
         echo "FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}" >> .env
-        echo "PRIVATE_SIGNING_KEY=${PRIVATE_SIGNING_KEY}" >> .env
+        echo "PRIVATE_SIGNING_KEY='${PRIVATE_SIGNING_KEY}'" >> .env
     - name: write service account json to file
       run: |
         echo ${SERVICE_ACCOUNT_JSON} >> service-account.json
