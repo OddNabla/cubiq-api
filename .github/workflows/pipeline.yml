@@ -80,3 +80,19 @@ jobs:
             docker run -d --name cubiq-api --restart=on-failure -p 8080:8080 ghcr.io/$REPO_OWNER/cubiq-api:$GIT_COMMIT
 
           EOF
+  health-check:
+    runs-on: ubuntu-latest
+    needs: deploy_to_ec2
+    env:
+      HEALTH_CHECK_URL: ${{ vars.HEALTH_CHECK_URL }}
+
+    steps:
+      - name: Check API Health
+        run: |
+          URL="${HEALTH_CHECK_URL}"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Health check failed with status code $HTTP_STATUS"
+            exit 1
+          fi
+          echo "Health check passed!"
