@@ -29,7 +29,7 @@ jobs:
         echo "PRIVATE_SIGNING_KEY=${PRIVATE_SIGNING_KEY}" >> .env
     - name: write service account json to file
       run: |
-        echo ${SERVICE_ACCOUNT_JSON} service-account.json
+        echo ${SERVICE_ACCOUNT_JSON} > service-account.json
 
     - name: Pretty-print JSON
       run: |
