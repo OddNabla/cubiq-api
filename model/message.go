@@ -1,9 +1,11 @@
 package model
 
+import "time"
+
 type ChatMessage struct {
 	Id        string                  `json:"id" bson:"_id"`
 	From      string                  `json:"from" bson:"from"`
-	Timestamp string                  `json:"timestamp" bson:"timestamp"`
+	Timestamp time.Time               `json:"timestamp" bson:"timestamp"`
 	Type      string                  `json:"type" bson:"type"`
 	Text      MessageText             `json:"text" bson:"text"`
 	Media     MediaMessage            `json:"media" bson:"media"`
@@ -11,6 +13,8 @@ type ChatMessage struct {
 	Contacts  []SharedContactsMessage `json:"contacts" bson:"contacts"`
 	Reaction  ReactionMessage         `json:"reaction" bson:"reaction"`
 	Statuses  []MessageStatus         `json:"statuses" bson:"statuses"`
+	CreatedAt time.Time               `json:"createdAt" bson:"createdAt"`
+	Summary   string                  `json:"summary" bson:"summary"`
 }
 
 type MessageStatus struct {
@@ -59,4 +63,49 @@ type LocationMessage struct {
 	Latitude  float32 `json:"latitude" bson:"latitude"`
 	Longitude float32 `json:"longitude" bson:"longitude"`
 	Name      string  `json:"name" bson:"name"`
+}
+
+func (m *ChatMessage) SetDefaults() {
+	now := time.Now().UTC()
+	if m.CreatedAt.IsZero() {
+		m.CreatedAt = now
+	}
+}
+func (m *ChatMessage) SetSummary() {
+	if m.Summary != "" {
+		return
+	}
+	if m.Type == "text" {
+		m.Summary = m.Text.Body
+		return
+	}
+	switch m.Type {
+	case "media":
+		m.Summary = m.Type
+
+	case "location":
+		m.Summary = "Localização"
+
+	case "contacts":
+		if len(m.Contacts) > 0 {
+			m.Summary = "Contato: " + m.Contacts[0].Name.FormattedName
+		} else {
+			m.Summary = "Contatos"
+		}
+
+	case "reaction":
+		m.Summary = "Reação: " + m.Reaction.Emoji
+	case "image":
+		m.Summary = "Imagem"
+	case "video":
+		m.Summary = "Vídeo"
+	case "audio":
+		m.Summary = "Áudio"
+	case "document":
+		m.Summary = "Documento"
+	case "sticker":
+		m.Summary = "Sticker"
+	default:
+		m.Summary = "Nova mensagem"
+	}
 }

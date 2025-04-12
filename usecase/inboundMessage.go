@@ -3,6 +3,8 @@ package usecase
 import (
 	"context"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/DouglasValerio/cubiq-api/model"
 	"github.com/DouglasValerio/cubiq-api/repository"
@@ -10,11 +12,15 @@ import (
 )
 
 type InboundMessageUseCase struct {
-	ChatMessageRepo repository.ChatMessageRepository
+	ChatMessageRepo    repository.ChatMessageRepository
+	InboundMessageRepo repository.InboundMessageRepository
 }
 
 func (uc *InboundMessageUseCase) Execute(inboundMessage *model.InboundMessage) ([]*model.ChatMessage, error) {
-
+	_, err := uc.InboundMessageRepo.InsertInboundMessage(inboundMessage)
+	if err != nil {
+		return nil, err
+	}
 	messages, statuses := inboundMessage.FlattenValues()
 	chatMessages, errMsgs := uc.generateChatMessage(messages)
 	chatStatuses, err := uc.generateChatStatus(statuses)
@@ -33,19 +39,28 @@ func (uc *InboundMessageUseCase) Execute(inboundMessage *model.InboundMessage) (
 	if errMsgs != nil {
 		return nil, err
 	}
-
+	uc.InboundMessageRepo.SetProcessedAt(inboundMessage.ID)
 	return chatMessages, nil
 }
 func (uc *InboundMessageUseCase) generateChatMessage(messages []model.Message) ([]*model.ChatMessage, error) {
 	chatMessages := make([]*model.ChatMessage, 0)
 	for _, message := range messages {
+		t := time.Now().UTC()
+		secondsSinceEpoch, err := strconv.ParseInt(message.Timestamp, 10, 64)
+		if err == nil {
+
+			t = time.Unix(secondsSinceEpoch, 0).UTC()
+		}
+
 		chatMessage := &model.ChatMessage{
 			Id:        message.Id,
 			From:      message.From,
 			Type:      message.Type,
-			Timestamp: message.Timestamp,
+			Timestamp: t,
 			Text:      message.Text,
 		}
+		chatMessage.SetDefaults()
+		chatMessage.SetSummary()
 		handleMediaMessage(message, chatMessage)
 		chatMessages = append(chatMessages, chatMessage)
 	}

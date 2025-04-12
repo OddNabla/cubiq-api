@@ -7,11 +7,11 @@ import (
 )
 
 type InboundMessage struct {
-	ID        string                `json:"id,omitempty" bson:"_id"`
-	Object    string                `json:"object" binding:"required" bson:"object"`
-	Entry     []InboundMessageEntry `json:"entry" binding:"required" bson:"entry"`
-	CreatedAt time.Time             `json:"createdAt" bson:"createdAt"`
-	UpdatedAt time.Time             `json:"updatedAt" bson:"updatedAt"`
+	ID          string                `json:"id,omitempty" bson:"_id"`
+	Object      string                `json:"object" binding:"required" bson:"object"`
+	Entry       []InboundMessageEntry `json:"entry" binding:"required" bson:"entry"`
+	CreatedAt   time.Time             `json:"createdAt" bson:"createdAt"`
+	ProcessedAt time.Time             `json:"processedAt" bson:"processedAt"`
 }
 
 type InboundMessageEntry struct {
@@ -147,7 +147,6 @@ func (m *InboundMessage) SetDefaults() {
 	if m.CreatedAt.IsZero() {
 		m.CreatedAt = now
 	}
-	m.UpdatedAt = now
 }
 
 func (m *InboundMessage) FlattenValues() ([]Message, []Statuses) {

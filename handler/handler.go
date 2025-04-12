@@ -42,17 +42,18 @@ func HandleInboundFromWebhookMessage(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	inboundMessageRepository := repository.InboundMessageRepo{
+	inboundMessageRepository := &repository.InboundMessageRepo{
 		MongoDatabase: setup.MongoDatabase,
 	}
 	chatRepository := &repository.ChatMessageRepo{
 		MongoDatabase: setup.MongoDatabase,
 	}
 	inboundMessageUseCase := usecase.InboundMessageUseCase{
-		ChatMessageRepo: chatRepository}
+		ChatMessageRepo:    chatRepository,
+		InboundMessageRepo: inboundMessageRepository,
+	}
 	inboundMessage.SetDefaults()
-	result, err := inboundMessageRepository.InsertInboundMessage(&inboundMessage)
-	inboundMessageUseCase.Execute(&inboundMessage)
+	result, err := inboundMessageUseCase.Execute(&inboundMessage)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save inbound message"})
 		return
