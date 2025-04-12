@@ -13,7 +13,7 @@ type InboundMessageRepo struct {
 }
 
 func (r *InboundMessageRepo) InsertInboundMessage(inboundMessage *model.InboundMessage) (*model.InboundMessage, error) {
-	collection := r.MongoDatabase.Collection("inbound_messages")
+	collection := r.MongoDatabase.Collection("InboundMessages")
 	inboundMessage.SetDefaults()
 	_, err := collection.InsertOne(context.Background(), inboundMessage)
 	if err != nil {
@@ -23,7 +23,7 @@ func (r *InboundMessageRepo) InsertInboundMessage(inboundMessage *model.InboundM
 }
 
 func (r *InboundMessageRepo) FindInboundMessageById(id string) (*model.InboundMessage, error) {
-	collection := r.MongoDatabase.Collection("inbound_messages")
+	collection := r.MongoDatabase.Collection("InboundMessages")
 	filter := bson.M{"id": id}
 	var inboundMessage model.InboundMessage
 	err := collection.FindOne(context.Background(), filter).Decode(&inboundMessage)
@@ -34,7 +34,7 @@ func (r *InboundMessageRepo) FindInboundMessageById(id string) (*model.InboundMe
 }
 
 func (r *InboundMessageRepo) FindAllInboundMessages() ([]model.InboundMessage, error) {
-	collection := r.MongoDatabase.Collection("inbound_messages")
+	collection := r.MongoDatabase.Collection("InboundMessages")
 	result, err := collection.Find(context.Background(), bson.M{})
 	if err != nil {
 		return nil, err

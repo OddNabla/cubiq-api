@@ -18,7 +18,7 @@ type ChatMessageRepo struct {
 }
 
 func (r *ChatMessageRepo) InsertChatMessage(chatMessage *model.ChatMessage) (*model.ChatMessage, error) {
-	collection := r.MongoDatabase.Collection("chat_messages")
+	collection := r.MongoDatabase.Collection("ChatMessages")
 	_, err := collection.InsertOne(context.Background(), chatMessage)
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func (r *ChatMessageRepo) InsertChatMessage(chatMessage *model.ChatMessage) (*mo
 }
 
 func (r *ChatMessageRepo) UpdateChatMessageStatus(id string, statuses []model.MessageStatus) error {
-	collection := r.MongoDatabase.Collection("chat_messages")
+	collection := r.MongoDatabase.Collection("ChatMessages")
 	filter := bson.M{"_id": id}
 	update := bson.M{
 		"$push": bson.M{
