@@ -36,5 +36,5 @@
     EXPOSE 8080
     
     # Run the binary
-    CMD ["./cubiqapi"]
+    CMD ["sh", "-c", "cat .env && ./cubiqapi"]
     
