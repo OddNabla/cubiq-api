@@ -13,7 +13,6 @@
     
     # Copy the rest of the source code
     COPY . .
-    COPY .env .env
     
     # Build the Go app
     RUN go build -o cubiqapi main.go
