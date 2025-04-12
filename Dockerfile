@@ -27,6 +27,9 @@
     COPY --from=builder /app/cubiqapi .
     COPY --from=builder /app/.env .env
     COPY --from=builder /app/service-account.json service-account.json
+
+    # Print contents of .env for debugging purposes
+    RUN cat .env
     
     # Expose application port (optional)
     # Application runs on port 8080
