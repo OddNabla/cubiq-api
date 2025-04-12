@@ -29,7 +29,11 @@ jobs:
         echo "PRIVATE_SIGNING_KEY=${PRIVATE_SIGNING_KEY}" >> .env
     - name: write service account json to file
       run: |
-        echo ${SERVICE_ACCOUNT_JSON} | jq '.' > service_account.json
+        echo ${SERVICE_ACCOUNT_JSON} service-account.json
+
+    - name: Pretty-print JSON
+      run: |
+        jq '.' service-account.json
 
     - name: Log in to GitHub Container Registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
