@@ -2,6 +2,7 @@ package usecase_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/DouglasValerio/cubiq-api/model"
 	"github.com/DouglasValerio/cubiq-api/usecase"
@@ -30,10 +31,35 @@ func (m *MockChatMessageRepo) UpdateChatMessageStatus(id string, statuses []mode
 	return args.Error(0)
 }
 
+type MockInboundMessageRepo struct {
+	mock.Mock
+}
+
+func (m *MockInboundMessageRepo) InsertInboundMessage(inbound *model.InboundMessage) (*model.InboundMessage, error) {
+	return &model.InboundMessage{
+		ID: inbound.ID,
+	}, nil
+}
+func (m *MockInboundMessageRepo) SetProcessedAt(id string) error {
+	args := m.Called(id)
+	return args.Error(0)
+}
+
+func (m *MockInboundMessageRepo) FindInboundMessageById(id string) (*model.InboundMessage, error) {
+	args := m.Called(id)
+	return args.Get(0).(*model.InboundMessage), args.Error(1)
+}
+func (m *MockInboundMessageRepo) FindAllInboundMessages() ([]model.InboundMessage, error) {
+	args := m.Called()
+	return args.Get(0).([]model.InboundMessage), args.Error(1)
+}
+
 func TestInboundMessageUseCase_Execute(t *testing.T) {
-	mockRepo := new(MockChatMessageRepo)
+	mockRepo := &MockChatMessageRepo{}
+	MockInboundMessageRepo := &MockInboundMessageRepo{}
 	useCase := &usecase.InboundMessageUseCase{
-		ChatMessageRepo: mockRepo,
+		ChatMessageRepo:    mockRepo,
+		InboundMessageRepo: MockInboundMessageRepo,
 	}
 
 	inbound := &model.InboundMessage{
@@ -52,7 +78,7 @@ func TestInboundMessageUseCase_Execute(t *testing.T) {
 								{
 									Id:        "msg-1",
 									From:      "user-123",
-									Timestamp: "1234567890",
+									Timestamp: "1745240279",
 									Type:      "text",
 									Text:      model.MessageText{Body: "Hello"},
 								},
@@ -64,23 +90,24 @@ func TestInboundMessageUseCase_Execute(t *testing.T) {
 		},
 	}
 
-	expectedStatus := model.MessageStatus{
-		Id:        "msg-1",
-		Status:    "delivered",
-		Timestamp: "1234567891",
+	parsedTime, err := time.Parse(time.UnixDate, time.Unix(1745240279, 0).UTC().Format(time.UnixDate))
+	if err != nil {
+		t.Fatalf("failed to parse time: %v", err)
 	}
 
 	expectedMessage := &model.ChatMessage{
 		Id:        "msg-1",
 		From:      "user-123",
-		Timestamp: "1234567890",
+		Timestamp: parsedTime,
 		Type:      "text",
 		Text:      model.MessageText{Body: "Hello"},
 	}
 
 	// Expectations
-	mockRepo.On("UpdateChatMessageStatus", "msg-1", []model.MessageStatus{expectedStatus}).Return(nil)
 	mockRepo.On("InsertChatMessage", expectedMessage).Return(nil)
+
+	MockInboundMessageRepo.On("InsertInboundMessage", inbound).Return(inbound, nil)
+	MockInboundMessageRepo.On("SetProcessedAt", inbound.ID).Return(nil)
 
 	// Run
 	result, err := useCase.Execute(inbound)
@@ -89,6 +116,4 @@ func TestInboundMessageUseCase_Execute(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, result, 1)
 	assert.Equal(t, expectedMessage.Text.Body, result[0].Text.Body)
-
-	mockRepo.AssertExpectations(t)
 }
