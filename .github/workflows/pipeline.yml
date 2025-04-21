@@ -5,9 +5,27 @@ on:
     branches: [ main ]
 
 jobs:
+  lint:
+      runs-on: ubuntu-latest
+      name: Lint Code
+      steps:
+        - uses: actions/checkout@v3
+
+        - uses: actions/setup-go@v4
+          with:
+            go-version: '1.24'
+
+        - name: Install golangci-lint
+          uses: golangci/golangci-lint-action@v3
+          with:
+            version: latest
+
+        - name: Run golangci-lint
+          run: golangci-lint run ./...
   test:
       name: Run Tests
       runs-on: ubuntu-latest
+      needs: lint
       steps:
         - name: Checkout code
           uses: actions/checkout@v3
