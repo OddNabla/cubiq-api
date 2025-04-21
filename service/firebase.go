@@ -71,7 +71,11 @@ func getUrl(bucketName, objectName string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer client.Close()
+	defer func() {
+		if err := client.Close(); err != nil {
+			fmt.Printf("error closing storage client: %v\n", err)
+		}
+	}()
 
 	privateKeyBytes := []byte(os.Getenv("PRIVATE_SIGNING_KEY"))
 

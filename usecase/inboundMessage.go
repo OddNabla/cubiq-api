@@ -26,10 +26,16 @@ func (uc *InboundMessageUseCase) Execute(inboundMessage *model.InboundMessage) (
 	chatStatuses, err := uc.generateChatStatus(statuses)
 
 	for _, status := range chatStatuses {
-		uc.ChatMessageRepo.UpdateChatMessageStatus(status.Id, derefStatuses(chatStatuses))
+		err := uc.ChatMessageRepo.UpdateChatMessageStatus(status.Id, derefStatuses(chatStatuses))
+		if err != nil {
+			return nil, err
+		}
 	}
 	for _, message := range chatMessages {
-		uc.ChatMessageRepo.InsertChatMessage(message)
+		_, err := uc.ChatMessageRepo.InsertChatMessage(message)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err != nil {
@@ -39,7 +45,10 @@ func (uc *InboundMessageUseCase) Execute(inboundMessage *model.InboundMessage) (
 	if errMsgs != nil {
 		return nil, err
 	}
-	uc.InboundMessageRepo.SetProcessedAt(inboundMessage.ID)
+	err = uc.InboundMessageRepo.SetProcessedAt(inboundMessage.ID)
+	if err != nil {
+		return nil, err
+	}
 	return chatMessages, nil
 }
 func (uc *InboundMessageUseCase) generateChatMessage(messages []model.Message) ([]*model.ChatMessage, error) {

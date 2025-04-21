@@ -28,7 +28,12 @@ func HandleInboundMessage(c *gin.Context) {
 		ChatMessageRepo: chatRepository}
 	inboundMessage.SetDefaults()
 	result, err := inboundMessageRepository.InsertInboundMessage(&inboundMessage)
-	inboundMessageUseCase.Execute(&inboundMessage)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save inbound message"})
+		return
+	}
+	_, err = inboundMessageUseCase.Execute(&inboundMessage)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save inbound message"})
 		return

@@ -5,5 +5,7 @@ import "github.com/gin-gonic/gin"
 func Initialize() {
 	router := gin.Default()
 	initializeRoutes(router)
-	router.Run()
+	if err := router.Run(); err != nil {
+		panic(err)
+	}
 }
